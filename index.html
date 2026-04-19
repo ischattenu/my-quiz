@@ -46,7 +46,7 @@
     font-size: 13px;
     margin-top: 10px;
   }
-  .card { padding: 30px; }
+  .card { padding: 30px; min-height: 300px; }
   .question-num {
     display: inline-block;
     background: #ede9fe;
@@ -63,6 +63,7 @@
     line-height: 1.6;
     margin-bottom: 25px;
     color: #1f2937;
+    white-space: pre-wrap;
   }
   .choices { display: flex; flex-direction: column; gap: 10px; }
   .choice {
@@ -77,6 +78,8 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    font-family: inherit;
+    width: 100%;
   }
   .choice:hover:not(:disabled) {
     background: #eff6ff;
@@ -118,9 +121,10 @@
     line-height: 1.7;
     color: #78350f;
     display: none;
+    white-space: pre-wrap;
   }
   .explanation.show { display: block; animation: slideDown 0.3s; }
-  .explanation strong { color: #92400e; }
+  .explanation strong { color: #92400e; display: block; margin-bottom: 8px; }
   @keyframes slideDown {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -141,13 +145,17 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
+    font-family: inherit;
   }
-  .btn-prev { background: #e5e7eb; color: #374151; }
-  .btn-prev:hover { background: #d1d5db; }
-  .btn-next { background: #4f46e5; color: white; }
+  .btn-next {
+    background: #4f46e5;
+    color: white;
+  }
   .btn-next:hover { background: #4338ca; }
-  .btn-next:disabled, .btn-prev:disabled {
-    opacity: 0.4; cursor: not-allowed;
+  .btn-next:disabled {
+    background: #d1d5db;
+    color: #9ca3af;
+    cursor: not-allowed;
   }
   .result {
     padding: 40px 30px;
@@ -178,28 +186,45 @@
     cursor: pointer;
     font-weight: 600;
     font-size: 14px;
+    font-family: inherit;
   }
   .mode-btn:hover { background: #4f46e5; color: white; }
+  .loading {
+    padding: 60px 30px;
+    text-align: center;
+    color: #6b7280;
+  }
+  .error {
+    padding: 30px;
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 8px;
+    margin: 20px;
+  }
 </style>
 </head>
 <body>
 
 <div class="container">
   <div class="header">
-    <h1 id="quizTitle">📚 금융투자분석사 문제은행</h1>
+    <h1 id="quizTitle">📚 문제은행</h1>
     <div class="progress-bar">
       <div class="progress-fill" id="progressFill"></div>
     </div>
     <div class="stats">
-      <span id="progressText">1 / 10</span>
+      <span id="progressText">로딩 중...</span>
       <span>✅ <span id="correctCount">0</span></span>
       <span>❌ <span id="wrongCount">0</span></span>
     </div>
   </div>
 
-  <div class="card" id="quizCard">
+  <div id="loadingView" class="loading">
+    <p>📂 문제 파일을 불러오는 중...</p>
+  </div>
+
+  <div class="card" id="quizCard" style="display:none;">
     <span class="question-num" id="questionNum">문제 1</span>
-    <div class="question" id="questionText">로딩 중...</div>
+    <div class="question" id="questionText"></div>
     <div class="choices" id="choicesContainer"></div>
     <div class="explanation" id="explanation"></div>
   </div>
@@ -209,98 +234,150 @@
     <div class="score"><span id="finalScore">0</span> / <span id="totalQuestions">0</span></div>
     <p id="resultMessage">수고하셨습니다!</p>
     <div class="mode-buttons">
-      <button class="mode-btn" onclick="restart()">🔄 다시 풀기</button>
+      <button class="mode-btn" onclick="restart()">🔄 다시 풀기 (랜덤)</button>
       <button class="mode-btn" onclick="reviewWrong()">❌ 틀린 문제만</button>
     </div>
   </div>
 
-  <div class="controls" id="controls">
-    <button class="nav btn-prev" id="prevBtn" onclick="prevQuestion()">← 이전</button>
-    <button class="nav btn-next" id="nextBtn" onclick="nextQuestion()">다음 →</button>
+  <div class="controls" id="controls" style="display:none;">
+    <button class="nav btn-next" id="nextBtn" onclick="nextQuestion()" disabled>
+      답을 선택하세요
+    </button>
   </div>
 </div>
 
 <script>
-// ====================================================
-// ⭐ 여기에 문제 데이터를 넣으세요 (JSON 형식)
-// ====================================================
-const QUIZ_DATA = {
-  "title": "📚 금융투자분석사 시험 문제",
-  "questions": [
-    {
-      "num": 1,
-      "question": "효율적 시장가설(EMH)의 세 가지 형태 중 준강형 효율적 시장에 대한 설명으로 옳은 것은?",
-      "choices": [
-        "과거 가격 정보만 반영되어 있다",
-        "공개된 모든 정보가 반영되어 있다",
-        "내부자 정보를 포함한 모든 정보가 반영되어 있다",
-        "미래 정보까지 반영되어 있다",
-        "시장수익률이 1% 상승하면 해당 주식은 1.5% 상승한다",
-        "시장수익률이 1% 상승하면 해당 주식은 0.5% 상승한다",
-        "해당 주식의 위험이 시장평균보다 50% 높다",
-        "해당 주식의 수익률이 시장평균보다 50% 높다",
-        "CAPM보다 현실적인 가정을 사용한다",
-        "다수의 체계적 위험요인을 고려한다",
-        "무위험차익거래 기회가 존재하지 않는다고 가정한다",
-        "투자자의 효용함수를 반드시 알아야 한다",
-        "20,000원",
-        "21,000원",
-        "10,000원",
-        "10,500원",
-        "500원",
-        "2,000원",
-        "50,000원",
-        "500,000원",
-        "배당금",
-        "세후순이자비용",
-        "우선주배당",
-        "보통주배당",
-        "30%",
-        "40%",
-        "60%",
-        "80%",
-        "순이익률",
-        "총자산회전율",
-        "재고자산회전율",
-        "재무레버리지",
-        "3억원",
-        "5억원",
-        "7억원",
-        "10억원",
-        "국가",
-        "한국은행",
-        "10억원 이상 금융투자상품 보유한 개인",
-        "5억원 이상 금융투자상품 보유한 개인",
-        "고객보다 회사의 이익을 우선한다",
-        "고객의 이익을 최우선으로 한다",
-        "회사와 고객의 이익을 동등하게 고려한다",
-        "분석사 개인의 이익을 최우선으로 한다",
-        "상장법인의 임원",
-        "상장법인의 주요주주",
-        "상장법인 주식을 보유한 일반 투자자",
-        "상장법인과 계약 체결한 자"
-      ],
-      "answer": 2,
-      "explanation": "효율적 시장가설의 준강형(Semi-strong form)은 공개된 모든 정보(과거 가격 정보, 재무제표, 공시자료 등)가 주가에 즉시 반영되어 있다는 이론입니다. 약형은 과거 가격정보만, 강형은 내부자정보까지 포함됩니다."
-    }
-  ]
-};
-// ====================================================
+// =====================================================
+// ⭐ 설정: 읽어올 텍스트 파일명 (같은 폴더에 두기)
+// =====================================================
+const QUIZ_FILE = 'quiz.txt';
+// =====================================================
 
+let allQuestions = [];
+let questions = [];
 let currentIdx = 0;
 let userAnswers = [];
-let questions = QUIZ_DATA.questions;
 let correctCount = 0;
 let wrongCount = 0;
+let answered = false;
 
-document.getElementById('quizTitle').textContent = QUIZ_DATA.title;
+// 텍스트 파일 파싱 함수
+function parseQuizText(text) {
+  const result = { title: '문제은행', questions: [] };
+  
+  // 제목 추출
+  const titleMatch = text.match(/^#\s+(.+)$/m);
+  if (titleMatch) result.title = titleMatch[1].trim();
+  
+  // 문제 파싱
+  const qRegex = /\*\*문제\s*(\d+)\*\*\s*\n([\s\S]*?)\*\*정답:\s*([A-D])\*\*/g;
+  const questions = {};
+  let match;
+  
+  while ((match = qRegex.exec(text)) !== null) {
+    const num = parseInt(match[1]);
+    const block = match[2].trim();
+    const answer = match[3].trim().toUpperCase();
+    
+    const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+    
+    // 보기와 질문 분리
+    const choiceLines = [];
+    const questionLines = [];
+    let foundChoice = false;
+    
+    for (const line of lines) {
+      if (/^[A-D]\)/i.test(line)) {
+        foundChoice = true;
+        choiceLines.push(line.replace(/^[A-D]\)\s*/i, ''));
+      } else if (!foundChoice) {
+        questionLines.push(line);
+      }
+    }
+    
+    questions[num] = {
+      num: num,
+      question: questionLines.join('\n'),
+      choices: choiceLines,
+      answer: ['A','B','C','D'].indexOf(answer),
+      explanation: '해설이 없습니다.'
+    };
+  }
+  
+  // 해설 파싱
+  const eRegex = /\*\*문제\s*(\d+)\s*해설:\*\*\s*\n([\s\S]*?)(?=\n\*\*문제\s*\d+\s*해설:|\n#|\Z)/g;
+  while ((match = eRegex.exec(text)) !== null) {
+    const num = parseInt(match[1]);
+    if (questions[num]) {
+      questions[num].explanation = match[2].trim();
+    }
+  }
+  
+  result.questions = Object.values(questions).sort((a, b) => a.num - b.num);
+  return result;
+}
+
+// 배열 섞기 (Fisher-Yates)
+function shuffleArray(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+// 파일 로딩
+async function loadQuiz() {
+  try {
+    const response = await fetch(QUIZ_FILE);
+    if (!response.ok) throw new Error(`파일을 불러올 수 없습니다 (${response.status})`);
+    
+    const text = await response.text();
+    const data = parseQuizText(text);
+    
+    if (data.questions.length === 0) {
+      throw new Error('문제를 파싱하지 못했습니다. 파일 형식을 확인하세요.');
+    }
+    
+    allQuestions = data.questions;
+    document.getElementById('quizTitle').textContent = `📚 ${data.title}`;
+    
+    startQuiz(allQuestions);
+  } catch (err) {
+    document.getElementById('loadingView').innerHTML = 
+      `<div class="error">❌ ${err.message}<br><br>
+      <small>quiz.txt 파일이 같은 폴더에 있는지 확인하세요.</small></div>`;
+  }
+}
+
+function startQuiz(qList) {
+  questions = shuffleArray(qList);  // 🎲 랜덤 섞기
+  currentIdx = 0;
+  userAnswers = [];
+  correctCount = 0;
+  wrongCount = 0;
+  answered = false;
+  
+  document.getElementById('correctCount').textContent = 0;
+  document.getElementById('wrongCount').textContent = 0;
+  document.getElementById('loadingView').style.display = 'none';
+  document.getElementById('quizCard').style.display = 'block';
+  document.getElementById('controls').style.display = 'flex';
+  document.getElementById('resultCard').classList.remove('show');
+  
+  loadQuestion();
+}
 
 function loadQuestion() {
   const q = questions[currentIdx];
-  document.getElementById('questionNum').textContent = `문제 ${q.num}`;
+  answered = false;
+  
+  document.getElementById('questionNum').textContent = `문제 ${currentIdx + 1}`;
   document.getElementById('questionText').textContent = q.question;
   document.getElementById('progressText').textContent = `${currentIdx + 1} / ${questions.length}`;
-  document.getElementById('progressFill').style.width = `${((currentIdx + 1) / questions.length) * 100}%`;
+  document.getElementById('progressFill').style.width = 
+    `${((currentIdx + 1) / questions.length) * 100}%`;
 
   const container = document.getElementById('choicesContainer');
   container.innerHTML = '';
@@ -311,58 +388,63 @@ function loadQuestion() {
     btn.className = 'choice';
     btn.innerHTML = `<span class="choice-label">${labels[idx]}</span><span>${choice}</span>`;
     btn.onclick = () => selectAnswer(idx);
-    
-    // 이미 답했으면 상태 복원
-    if (userAnswers[currentIdx] !== undefined) {
-      btn.disabled = true;
-      const selected = userAnswers[currentIdx];
-      if (idx === q.answer) btn.classList.add('correct');
-      else if (idx === selected) btn.classList.add('wrong');
-    }
     container.appendChild(btn);
   });
 
-  const exp = document.getElementById('explanation');
-  if (userAnswers[currentIdx] !== undefined) {
-    exp.innerHTML = `<strong>📖 해설</strong><br><br>${q.explanation}`;
-    exp.classList.add('show');
-  } else {
-    exp.classList.remove('show');
-  }
-
-  document.getElementById('prevBtn').disabled = currentIdx === 0;
-  document.getElementById('nextBtn').textContent = 
-    currentIdx === questions.length - 1 ? '결과 보기 🏁' : '다음 →';
+  document.getElementById('explanation').classList.remove('show');
+  
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.disabled = true;
+  nextBtn.textContent = '답을 선택하세요';
 }
 
 function selectAnswer(idx) {
-  if (userAnswers[currentIdx] !== undefined) return;
+  if (answered) return;
+  answered = true;
   
-  userAnswers[currentIdx] = idx;
   const q = questions[currentIdx];
+  userAnswers[currentIdx] = idx;
   
-  if (idx === q.answer) correctCount++;
-  else wrongCount++;
+  const buttons = document.querySelectorAll('.choice');
+  buttons.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.answer) btn.classList.add('correct');
+    else if (i === idx) btn.classList.add('wrong');
+  });
+  
+  if (idx === q.answer) {
+    correctCount++;
+  } else {
+    wrongCount++;
+  }
   
   document.getElementById('correctCount').textContent = correctCount;
   document.getElementById('wrongCount').textContent = wrongCount;
   
-  loadQuestion();
+  // 해설 표시
+  const exp = document.getElementById('explanation');
+  const isCorrect = idx === q.answer;
+  exp.innerHTML = `<strong>${isCorrect ? '✅ 정답입니다!' : '❌ 오답입니다. 정답은 ' + labels(q.answer) + '입니다.'}</strong>📖 해설\n\n${q.explanation}`;
+  exp.classList.add('show');
+  
+  // 다음 버튼 활성화
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.disabled = false;
+  nextBtn.textContent = currentIdx === questions.length - 1 ? '🏁 결과 보기' : '다음 문제 →';
+}
+
+function labels(idx) {
+  return ['A', 'B', 'C', 'D'][idx];
 }
 
 function nextQuestion() {
+  if (!answered) return;
+  
   if (currentIdx < questions.length - 1) {
     currentIdx++;
     loadQuestion();
   } else {
     showResult();
-  }
-}
-
-function prevQuestion() {
-  if (currentIdx > 0) {
-    currentIdx--;
-    loadQuestion();
   }
 }
 
@@ -383,39 +465,24 @@ function showResult() {
 }
 
 function restart() {
-  currentIdx = 0;
-  userAnswers = [];
-  correctCount = 0;
-  wrongCount = 0;
-  questions = QUIZ_DATA.questions;
-  document.getElementById('correctCount').textContent = 0;
-  document.getElementById('wrongCount').textContent = 0;
-  document.getElementById('quizCard').style.display = 'block';
-  document.getElementById('controls').style.display = 'flex';
-  document.getElementById('resultCard').classList.remove('show');
-  loadQuestion();
+  startQuiz(allQuestions);
 }
 
 function reviewWrong() {
-  const wrong = QUIZ_DATA.questions.filter((q, i) => userAnswers[i] !== q.answer);
-  if (wrong.length === 0) {
+  const wrongQs = [];
+  questions.forEach((q, i) => {
+    if (userAnswers[i] !== q.answer) wrongQs.push(q);
+  });
+  
+  if (wrongQs.length === 0) {
     alert('🎉 틀린 문제가 없습니다!');
     return;
   }
-  questions = wrong;
-  currentIdx = 0;
-  userAnswers = [];
-  correctCount = 0;
-  wrongCount = 0;
-  document.getElementById('correctCount').textContent = 0;
-  document.getElementById('wrongCount').textContent = 0;
-  document.getElementById('quizCard').style.display = 'block';
-  document.getElementById('controls').style.display = 'flex';
-  document.getElementById('resultCard').classList.remove('show');
-  loadQuestion();
+  startQuiz(wrongQs);
 }
 
-loadQuestion();
+// 시작
+loadQuiz();
 </script>
 </body>
 </html>
