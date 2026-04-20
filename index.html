@@ -16,194 +16,72 @@
     justify-content: center;
   }
   .container {
-    max-width: 700px;
-    width: 100%;
-    background: white;
-    border-radius: 20px;
+    max-width: 700px; width: 100%;
+    background: white; border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     overflow: hidden;
   }
   .header {
     background: linear-gradient(135deg, #4f46e5, #7c3aed);
-    color: white;
-    padding: 20px 30px;
+    color: white; padding: 20px 30px;
   }
   .header h1 { font-size: 18px; margin-bottom: 8px; }
-  .progress-bar {
-    height: 6px;
-    background: rgba(255,255,255,0.3);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: #fbbf24;
-    transition: width 0.3s;
-  }
-  .stats {
-    display: flex;
-    gap: 15px;
-    font-size: 13px;
-    margin-top: 10px;
-  }
+  .progress-bar { height: 6px; background: rgba(255,255,255,0.3); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #fbbf24; transition: width 0.3s; }
+  .stats { display: flex; gap: 15px; font-size: 13px; margin-top: 10px; }
   .card { padding: 30px; min-height: 300px; }
   .question-num {
-    display: inline-block;
-    background: #ede9fe;
-    color: #6d28d9;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 15px;
+    display: inline-block; background: #ede9fe; color: #6d28d9;
+    padding: 4px 12px; border-radius: 20px; font-size: 13px;
+    font-weight: 600; margin-bottom: 15px;
   }
-  .question {
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 1.6;
-    margin-bottom: 25px;
-    color: #1f2937;
-    white-space: pre-wrap;
-  }
+  .question { font-size: 17px; font-weight: 600; line-height: 1.6; margin-bottom: 25px; color: #1f2937; white-space: pre-wrap; }
   .choices { display: flex; flex-direction: column; gap: 10px; }
   .choice {
-    padding: 15px 18px;
-    background: #f9fafb;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 15px;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-family: inherit;
-    width: 100%;
+    padding: 15px 18px; background: #f9fafb; border: 2px solid #e5e7eb;
+    border-radius: 12px; cursor: pointer; transition: all 0.2s;
+    font-size: 15px; text-align: left; display: flex; align-items: center;
+    gap: 12px; font-family: inherit; width: 100%;
   }
-  .choice:hover:not(:disabled) {
-    background: #eff6ff;
-    border-color: #3b82f6;
-    transform: translateX(4px);
-  }
+  .choice:hover:not(:disabled) { background: #eff6ff; border-color: #3b82f6; transform: translateX(4px); }
   .choice-label {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: #e5e7eb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 13px;
-    flex-shrink: 0;
+    width: 28px; height: 28px; border-radius: 50%; background: #e5e7eb;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; flex-shrink: 0;
   }
-  .choice.correct {
-    background: #d1fae5;
-    border-color: #10b981;
-    color: #065f46;
-  }
+  .choice.correct { background: #d1fae5; border-color: #10b981; color: #065f46; }
   .choice.correct .choice-label { background: #10b981; color: white; }
-  .choice.wrong {
-    background: #fee2e2;
-    border-color: #ef4444;
-    color: #991b1b;
-  }
+  .choice.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
   .choice.wrong .choice-label { background: #ef4444; color: white; }
   .choice:disabled { cursor: not-allowed; }
   .explanation {
-    margin-top: 20px;
-    padding: 20px;
-    background: #fef3c7;
-    border-left: 4px solid #f59e0b;
-    border-radius: 8px;
-    font-size: 14px;
-    line-height: 1.7;
-    color: #78350f;
-    display: none;
-    white-space: pre-wrap;
+    margin-top: 20px; padding: 20px; background: #fef3c7;
+    border-left: 4px solid #f59e0b; border-radius: 8px;
+    font-size: 14px; line-height: 1.7; color: #78350f;
+    display: none; white-space: pre-wrap;
   }
   .explanation.show { display: block; animation: slideDown 0.3s; }
   .explanation strong { color: #92400e; display: block; margin-bottom: 8px; }
-  @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .controls {
-    display: flex;
-    gap: 10px;
-    padding: 20px 30px;
-    background: #f9fafb;
-    border-top: 1px solid #e5e7eb;
-  }
-  button.nav {
-    flex: 1;
-    padding: 14px;
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: inherit;
-  }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  .controls { display: flex; gap: 10px; padding: 20px 30px; background: #f9fafb; border-top: 1px solid #e5e7eb; }
+  button.nav { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
   .btn-next { background: #4f46e5; color: white; }
   .btn-next:hover:not(:disabled) { background: #4338ca; }
-  .btn-next:disabled {
-    background: #d1d5db;
-    color: #9ca3af;
-    cursor: not-allowed;
-  }
-  .result {
-    padding: 40px 30px;
-    text-align: center;
-    display: none;
-  }
+  .btn-next:disabled { background: #d1d5db; color: #9ca3af; cursor: not-allowed; }
+  .result { padding: 40px 30px; text-align: center; display: none; }
   .result.show { display: block; }
   .result h2 { font-size: 24px; margin-bottom: 20px; }
-  .score {
-    font-size: 48px;
-    font-weight: 800;
-    color: #4f46e5;
-    margin: 20px 0;
-  }
-  .mode-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
+  .score { font-size: 48px; font-weight: 800; color: #4f46e5; margin: 20px 0; }
+  .mode-buttons { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
   .mode-btn {
-    padding: 10px 20px;
-    border: 2px solid #4f46e5;
-    background: white;
-    color: #4f46e5;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    font-family: inherit;
+    padding: 10px 20px; border: 2px solid #4f46e5; background: white;
+    color: #4f46e5; border-radius: 8px; cursor: pointer;
+    font-weight: 600; font-size: 14px; font-family: inherit;
   }
   .mode-btn:hover { background: #4f46e5; color: white; }
-  .loading, .error-box {
-    padding: 40px 30px;
-    text-align: center;
-    color: #6b7280;
-  }
-  .error-box {
-    background: #fee2e2;
-    color: #991b1b;
-    margin: 20px;
-    border-radius: 8px;
-  }
-  .debug {
-    padding: 15px;
-    font-size: 12px;
-    color: #6b7280;
-    border-top: 1px solid #e5e7eb;
-    background: #f9fafb;
-  }
+  .loading, .error-box { padding: 40px 30px; text-align: center; color: #6b7280; }
+  .error-box { background: #fee2e2; color: #991b1b; margin: 20px; border-radius: 8px; }
+  .debug { padding: 15px; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb; background: #f9fafb; line-height: 1.6; }
 </style>
 </head>
 <body>
@@ -211,9 +89,7 @@
 <div class="container">
   <div class="header">
     <h1 id="quizTitle">📚 문제은행</h1>
-    <div class="progress-bar">
-      <div class="progress-fill" id="progressFill"></div>
-    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
     <div class="stats">
       <span id="progressText">로딩 중...</span>
       <span>✅ <span id="correctCount">0</span></span>
@@ -221,9 +97,7 @@
     </div>
   </div>
 
-  <div id="loadingView" class="loading">
-    <p>📂 문제 파일을 불러오는 중...</p>
-  </div>
+  <div id="loadingView" class="loading"><p>📂 문제 파일을 불러오는 중...</p></div>
 
   <div class="card" id="quizCard" style="display:none;">
     <span class="question-num" id="questionNum">문제 1</span>
@@ -243,23 +117,18 @@
   </div>
 
   <div class="controls" id="controls" style="display:none;">
-    <button class="nav btn-next" id="nextBtn" onclick="nextQuestion()" disabled>
-      답을 선택하세요
-    </button>
+    <button class="nav btn-next" id="nextBtn" onclick="nextQuestion()" disabled>답을 선택하세요</button>
   </div>
 
   <div id="debug" class="debug" style="display:none;"></div>
 </div>
 
 <script>
-// =====================================================
 const QUIZ_FILE = 'quiz.txt';
-// =====================================================
 
-// ===== 강력한 파서 =====
+// ===== 핵심 개선된 파서 =====
 function parseQuizText(text) {
-  // 원문자 → 알파벳/숫자 매핑
-  const CIRCLE_TO_IDX = {
+  const MARKER_TO_IDX = {
     '①':0, '②':1, '③':2, '④':3, '⑤':4,
     'A':0, 'B':1, 'C':2, 'D':3, 'E':4,
     '1':0, '2':1, '3':2, '4':3, '5':4
@@ -267,111 +136,177 @@ function parseQuizText(text) {
   
   const result = { title: '문제은행', questions: [], parseLog: [] };
   
-  // 제목 추출
   const titleMatch = text.match(/^#\s+(.+)$/m);
   if (titleMatch) result.title = titleMatch[1].replace(/[#📊💰📈⚖️📝]/g, '').trim();
   
-  // 문제 영역과 해설 영역 분리
-  // "해설" 또는 "정답 및 해설" 섹션을 기준으로 분리
-  let problemSection = text;
-  let explanationSection = '';
+  // ===== 1. 세트 분리 =====
+  // "============" 또는 "Index: N" 구분선으로 세트를 먼저 분리
+  // 이렇게 하면 메타데이터가 섞여도 세트 구분이 확실함
+  const setDelimiterRegex = /={5,}|Index:\s*\d+/;
+  const rawSets = text.split(setDelimiterRegex).filter(s => s.trim().length > 100);
   
-  const expSectionMatch = text.match(/(?:^|\n)#+\s*(?:📝\s*)?(?:정답\s*(?:및|과)?\s*)?해설[^\n]*\n([\s\S]*)/);
-  if (expSectionMatch) {
-    problemSection = text.substring(0, expSectionMatch.index);
-    explanationSection = expSectionMatch[1];
-  }
+  result.parseLog.push(`📦 ${rawSets.length}개 세트로 분리됨`);
   
-  // ===== 1. 문제 파싱 =====
-  // 문제 시작 패턴: **1.** / **1번.** / **1번)** / **문제 1.** / **문제 1)** 등
-  const qStartRegex = /\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*[.)]\s*\*\*|\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*[.)]?\s*([^\n*]*)\*\*/g;
+  const allQuestions = [];
   
-  // 더 간단한 접근: 줄 단위로 파싱
-  const lines = problemSection.split('\n');
+  // ===== 2. 각 세트 별도 파싱 =====
+  rawSets.forEach((setText, setIdx) => {
+    // 세트 내에서 문제/해설 영역 분리
+    let problemSection = setText;
+    let explanationSection = '';
+    
+    const expSectionMatch = setText.match(/(?:^|\n)#+\s*(?:📝\s*)?(?:✅\s*)?(?:정답\s*(?:및|과)?\s*)?해설[^\n]*\n([\s\S]*)/);
+    if (!expSectionMatch) {
+      // "# 해설" 못 찾으면 "정답 및 해설" 등 다른 패턴 시도
+      const altMatch = setText.match(/(?:^|\n)#+\s*정답[\s\S]*/);
+      if (altMatch) {
+        problemSection = setText.substring(0, altMatch.index);
+        explanationSection = altMatch[0];
+      }
+    } else {
+      problemSection = setText.substring(0, expSectionMatch.index);
+      explanationSection = expSectionMatch[1];
+    }
+    
+    // ===== 문제 파싱 =====
+    const questions = parseQuestions(problemSection, setIdx);
+    
+    // ===== 해설/정답 파싱 =====
+    const { answers, explanations } = parseAnswers(explanationSection);
+    
+    // ===== 매칭 =====
+    questions.forEach(q => {
+      if (answers[q.num] !== undefined) q.answer = answers[q.num];
+      if (explanations[q.num]) q.explanation = explanations[q.num];
+      else q.explanation = '해설이 없습니다.';
+    });
+    
+    const validInSet = questions.filter(q => {
+      const validChoices = q.choices.filter(c => c);
+      return validChoices.length >= 2 && q.answer >= 0 && q.choices[q.answer];
+    });
+    
+    // 정답 인덱스 재조정 (빈 보기 제거)
+    validInSet.forEach(q => {
+      const compact = [];
+      let newAns = -1;
+      q.choices.forEach((c, i) => {
+        if (c) {
+          if (i === q.answer) newAns = compact.length;
+          compact.push(c);
+        }
+      });
+      q.choices = compact;
+      q.answer = newAns;
+    });
+    
+    result.parseLog.push(`세트${setIdx+1}: 문제 ${questions.length}개 → 유효 ${validInSet.length}개`);
+    allQuestions.push(...validInSet);
+  });
+  
+  result.questions = allQuestions;
+  result.parseLog.push(`✅ 최종 유효 문제: ${allQuestions.length}개`);
+  
+  return result;
+}
+
+// ===== 문제 파싱 (세트 단위) =====
+function parseQuestions(text, setIdx) {
+  const MARKER_TO_IDX = {
+    '①':0, '②':1, '③':2, '④':3, '⑤':4,
+    'A':0, 'B':1, 'C':2, 'D':3, 'E':4,
+    '1':0, '2':1, '3':2, '4':3, '5':4
+  };
+  
+  const lines = text.split('\n');
   const questions = [];
   let current = null;
-  let setIndex = 0;  // 여러 세트가 섞였을 때 구분용
-  let prevNum = 0;
+  
+  // 무시할 메타데이터 라인 (Prompt:, Response:, Status: 등)
+  const skipLineRegex = /^(Prompt|Response|Status|Index):/i;
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
+    if (skipLineRegex.test(line)) continue;
     
-    // 문제 시작 인식 (**N.** **N번.** **N)** **N번)** **문제 N.** 등)
-    const qMatch = line.match(/^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*[.)]\s*(.*?)\*\*\s*(.*)$/) ||
-                   line.match(/^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*[.)]?\s*\*\*\s*(.+)$/);
+    // 문제 시작 인식
+    // **1.** / **1번.** / **1번)** / **문제 1.** / **문제 1)**
+    let qMatch = line.match(/^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*[.)]\s*(.*?)\*\*\s*(.*)$/);
+    if (!qMatch) qMatch = line.match(/^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*\*\*\s*[.)]?\s*(.+)$/);
     
     if (qMatch) {
-      // 이전 문제 저장
       if (current) questions.push(current);
       
       const num = parseInt(qMatch[1]);
-      // 번호가 역행하면 새 세트로 인식
-      if (num <= prevNum && prevNum >= 15) {
-        setIndex++;
-      }
-      prevNum = num;
-      
-      // 질문 텍스트 추출
       let qText = (qMatch[2] || '') + (qMatch[3] ? ' ' + qMatch[3] : '');
-      qText = qText.replace(/^\*+|\*+$/g, '').trim();
+      qText = qText.replace(/^\*+|\*+$/g, '').replace(/^[.)]\s*/, '').trim();
       
       current = {
-        setIndex,
-        num,
-        uniqueKey: `${setIndex}-${num}`,
+        setIdx, num,
         question: qText,
         choices: [],
-        choiceMarkers: [],  // ①②③④ 또는 1234 저장
         answer: -1,
         explanation: ''
       };
       continue;
     }
     
+    if (!current) continue;
+    
     // 보기 인식
-    if (current) {
-      // 형식: - ① xxx / ① xxx / 1. xxx / 1) xxx / A) xxx
-      let cMatch = line.match(/^[-•]?\s*([①②③④⑤])\s*(.+)$/);
-      if (!cMatch) cMatch = line.match(/^([1-5])[.)]\s*(.+)$/);
-      if (!cMatch) cMatch = line.match(/^([A-E])\)\s*(.+)$/i);
-      
-      if (cMatch) {
-        const marker = cMatch[1];
-        const idx = CIRCLE_TO_IDX[marker.toUpperCase()];
-        if (idx !== undefined && idx < 5) {
-          current.choiceMarkers.push(marker);
-          current.choices[idx] = cMatch[2].trim();
-        }
-        continue;
+    let cMatch = line.match(/^[-•]?\s*([①②③④⑤])\s*(.+)$/);
+    if (!cMatch) cMatch = line.match(/^[-•]?\s*([1-5])[.)]\s+(.+)$/);
+    if (!cMatch) cMatch = line.match(/^([A-E])\)\s*(.+)$/i);
+    
+    if (cMatch) {
+      const marker = cMatch[1].toUpperCase();
+      const idx = MARKER_TO_IDX[marker];
+      if (idx !== undefined && idx < 5) {
+        current.choices[idx] = cMatch[2].trim();
       }
-      
-      // 문제문 이어지기 (보기가 아직 안나왔을 때)
-      if (current.choices.length === 0 && line && !line.startsWith('#') && !line.startsWith('---')) {
-        current.question += (current.question ? ' ' : '') + line;
-      }
+      continue;
+    }
+    
+    // 문제문 이어쓰기
+    if (current.choices.filter(c => c).length === 0 && line && 
+        !line.startsWith('#') && !line.startsWith('---') && !line.startsWith('===')) {
+      current.question += (current.question ? ' ' : '') + line;
     }
   }
   if (current) questions.push(current);
   
-  // ===== 2. 해설 파싱 =====
-  // 해설에서 정답 추출: "**1번 정답: ②**" / "**문제 1 정답: ①**" / "**1. ②**" 등
-  const explanations = {};
+  return questions;
+}
+
+// ===== 정답/해설 파싱 =====
+function parseAnswers(text) {
+  const MARKER_TO_IDX = {
+    '①':0, '②':1, '③':2, '④':3, '⑤':4,
+    '1':0, '2':1, '3':2, '4':3, '5':4,
+    'A':0, 'B':1, 'C':2, 'D':3, 'E':4
+  };
+  
   const answers = {};
+  const explanations = {};
+  const lines = text.split('\n');
+  let currentNum = null;
+  let currentText = '';
   
-  const expLines = explanationSection.split('\n');
-  let currentExp = null;
-  let expSetIdx = 0;
-  let prevExpNum = 0;
+  const flush = () => {
+    if (currentNum !== null && currentText) {
+      explanations[currentNum] = currentText.trim();
+    }
+  };
   
-  for (let i = 0; i < expLines.length; i++) {
-    const line = expLines[i].trim();
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
     
-    // 해설/정답 시작 패턴
+    // **1번 정답: ②** / **1. 정답: ②** / **문제 1 정답: ②** / **1번: ②**
     const patterns = [
-      /^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*(?:정답|해설)?\s*[:：.)]?\s*([①②③④⑤1-5A-Ea-e]+)?\s*\*\*/,  // **1번 정답: ②**
-      /^\*\*\s*(\d+)\s*(?:번)?\s*정답\s*[:：]?\s*([①②③④⑤1-5A-Ea-e]+)\s*\*\*/,
-      /^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*\.\s*정답\s*[:：]?\s*([①②③④⑤1-5A-Ea-e]+)\s*\*\*/,
-      /^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*해설\s*[:：]?\s*\*\*/,
+      /^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*[.)]?\s*정답\s*[:：]?\s*([①②③④⑤1-5A-E])/,
+      /^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*[.)]?\s*[:：]\s*([①②③④⑤1-5A-E])/,
+      /^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*[.)]?\s*([①②③④⑤])\s*\*\*/,  // **1. ②** 형식
+      /^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*해설\s*[:：]?\s*\*\*/
     ];
     
     let matched = null;
@@ -381,84 +316,27 @@ function parseQuizText(text) {
     }
     
     if (matched) {
-      // 이전 해설 저장
-      if (currentExp) {
-        explanations[currentExp.uniqueKey] = currentExp.text.trim();
-      }
-      
+      flush();
       const num = parseInt(matched[1]);
-      if (num <= prevExpNum && prevExpNum >= 15) {
-        expSetIdx++;
+      if (matched[2]) {
+        const firstChar = matched[2].charAt(0).toUpperCase();
+        const idx = MARKER_TO_IDX[firstChar];
+        if (idx !== undefined) answers[num] = idx;
       }
-      prevExpNum = num;
-      
-      const uniqueKey = `${expSetIdx}-${num}`;
-      const ansMark = matched[2];
-      if (ansMark) {
-        // 첫 번째 표시만 사용 (복수정답인 경우 첫번째만)
-        const firstChar = ansMark.charAt(0).toUpperCase();
-        const idx = {
-          '①':0,'②':1,'③':2,'④':3,'⑤':4,
-          '1':0,'2':1,'3':2,'4':3,'5':4,
-          'A':0,'B':1,'C':2,'D':3,'E':4
-        }[firstChar];
-        if (idx !== undefined) answers[uniqueKey] = idx;
-      }
-      
-      currentExp = { uniqueKey, text: '' };
+      currentNum = num;
+      currentText = '';
       continue;
     }
     
-    // 해설 본문 누적
-    if (currentExp && line && !line.startsWith('#') && !line.startsWith('---') && !line.startsWith('===')) {
-      currentExp.text += (currentExp.text ? '\n' : '') + line;
+    if (currentNum !== null && line && 
+        !line.startsWith('#') && !line.startsWith('---') && !line.startsWith('===') &&
+        !/^(Prompt|Response|Status|Index):/i.test(line)) {
+      currentText += (currentText ? '\n' : '') + line;
     }
   }
-  if (currentExp) explanations[currentExp.uniqueKey] = currentExp.text.trim();
+  flush();
   
-  // ===== 3. 문제와 해설 매칭 =====
-  const validQuestions = [];
-  questions.forEach(q => {
-    // 정답 매칭
-    if (answers[q.uniqueKey] !== undefined) {
-      q.answer = answers[q.uniqueKey];
-    }
-    // 해설 매칭
-    if (explanations[q.uniqueKey]) {
-      q.explanation = explanations[q.uniqueKey];
-    } else {
-      q.explanation = '해설이 없습니다.';
-    }
-    
-    // 유효성 검사: 보기 2개 이상, 정답이 있어야 함
-    const validChoices = q.choices.filter(c => c);
-    if (validChoices.length >= 2 && q.answer >= 0 && q.answer < q.choices.length && q.choices[q.answer]) {
-      // 빈 보기 제거하고 인덱스 재조정은 하지 않음 (marker 기반이므로)
-      // 하지만 보기가 빈 칸이면 제거하고 정답 인덱스도 조정
-      const compactChoices = [];
-      let newAnswer = -1;
-      q.choices.forEach((c, i) => {
-        if (c) {
-          if (i === q.answer) newAnswer = compactChoices.length;
-          compactChoices.push(c);
-        }
-      });
-      q.choices = compactChoices;
-      q.answer = newAnswer;
-      
-      if (newAnswer >= 0) {
-        validQuestions.push(q);
-      }
-    }
-  });
-  
-  result.questions = validQuestions;
-  result.parseLog.push(`총 인식된 문제: ${questions.length}개`);
-  result.parseLog.push(`유효한 문제: ${validQuestions.length}개`);
-  result.parseLog.push(`정답 인식: ${Object.keys(answers).length}개`);
-  result.parseLog.push(`해설 인식: ${Object.keys(explanations).length}개`);
-  
-  return result;
+  return { answers, explanations };
 }
 
 // ===== 배열 섞기 =====
@@ -471,7 +349,7 @@ function shuffleArray(arr) {
   return copy;
 }
 
-// ===== 상태 =====
+// ===== 앱 상태 =====
 let allQuestions = [];
 let questions = [];
 let currentIdx = 0;
@@ -488,24 +366,21 @@ async function loadQuiz() {
     const text = await response.text();
     const data = parseQuizText(text);
     
-    // 디버그 정보 표시
     const debugEl = document.getElementById('debug');
     debugEl.style.display = 'block';
-    debugEl.innerHTML = '🔧 ' + data.parseLog.join(' | ');
+    debugEl.innerHTML = '🔧 파서 로그<br>' + data.parseLog.join('<br>');
     
     if (data.questions.length === 0) {
       throw new Error('문제를 파싱하지 못했습니다.\n\n' + data.parseLog.join('\n'));
     }
     
     allQuestions = data.questions;
-    document.getElementById('quizTitle').textContent = `📚 ${data.title} (${data.questions.length}문제)`;
+    document.getElementById('quizTitle').textContent = `📚 ${data.title} (총 ${data.questions.length}문제)`;
     
     startQuiz(allQuestions);
   } catch (err) {
     document.getElementById('loadingView').innerHTML = 
-      `<div class="error-box">❌ ${err.message}<br><br>
-      <small>quiz.txt가 같은 폴더에 있는지 확인하세요.<br>
-      (로컬에서 열 때는 Live Server를 사용하세요)</small></div>`;
+      `<div class="error-box">❌ ${err.message}</div>`;
   }
 }
 
@@ -531,7 +406,8 @@ function loadQuestion() {
   const q = questions[currentIdx];
   answered = false;
   
-  document.getElementById('questionNum').textContent = `문제 ${currentIdx + 1}`;
+  document.getElementById('questionNum').textContent = 
+    `문제 ${currentIdx + 1} (원본 세트${q.setIdx + 1}-${q.num}번)`;
   document.getElementById('questionText').textContent = q.question;
   document.getElementById('progressText').textContent = `${currentIdx + 1} / ${questions.length}`;
   document.getElementById('progressFill').style.width = 
@@ -617,16 +493,13 @@ function showResult() {
   document.getElementById('resultMessage').textContent = `정답률 ${rate}% - ${msg}`;
 }
 
-function restart() {
-  startQuiz(allQuestions);
-}
+function restart() { startQuiz(allQuestions); }
 
 function reviewWrong() {
   const wrongQs = [];
   questions.forEach((q, i) => {
     if (userAnswers[i] !== q.answer) wrongQs.push(q);
   });
-  
   if (wrongQs.length === 0) {
     alert('🎉 틀린 문제가 없습니다!');
     return;
