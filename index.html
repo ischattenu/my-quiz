@@ -147,11 +147,8 @@
     transition: all 0.2s;
     font-family: inherit;
   }
-  .btn-next {
-    background: #4f46e5;
-    color: white;
-  }
-  .btn-next:hover { background: #4338ca; }
+  .btn-next { background: #4f46e5; color: white; }
+  .btn-next:hover:not(:disabled) { background: #4338ca; }
   .btn-next:disabled {
     background: #d1d5db;
     color: #9ca3af;
@@ -189,17 +186,23 @@
     font-family: inherit;
   }
   .mode-btn:hover { background: #4f46e5; color: white; }
-  .loading {
-    padding: 60px 30px;
+  .loading, .error-box {
+    padding: 40px 30px;
     text-align: center;
     color: #6b7280;
   }
-  .error {
-    padding: 30px;
+  .error-box {
     background: #fee2e2;
     color: #991b1b;
-    border-radius: 8px;
     margin: 20px;
+    border-radius: 8px;
+  }
+  .debug {
+    padding: 15px;
+    font-size: 12px;
+    color: #6b7280;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
   }
 </style>
 </head>
@@ -244,80 +247,221 @@
       답을 선택하세요
     </button>
   </div>
+
+  <div id="debug" class="debug" style="display:none;"></div>
 </div>
 
 <script>
 // =====================================================
-// ⭐ 설정: 읽어올 텍스트 파일명 (같은 폴더에 두기)
-// =====================================================
 const QUIZ_FILE = 'quiz.txt';
 // =====================================================
 
-let allQuestions = [];
-let questions = [];
-let currentIdx = 0;
-let userAnswers = [];
-let correctCount = 0;
-let wrongCount = 0;
-let answered = false;
-
-// 텍스트 파일 파싱 함수
+// ===== 강력한 파서 =====
 function parseQuizText(text) {
-  const result = { title: '문제은행', questions: [] };
+  // 원문자 → 알파벳/숫자 매핑
+  const CIRCLE_TO_IDX = {
+    '①':0, '②':1, '③':2, '④':3, '⑤':4,
+    'A':0, 'B':1, 'C':2, 'D':3, 'E':4,
+    '1':0, '2':1, '3':2, '4':3, '5':4
+  };
+  
+  const result = { title: '문제은행', questions: [], parseLog: [] };
   
   // 제목 추출
   const titleMatch = text.match(/^#\s+(.+)$/m);
-  if (titleMatch) result.title = titleMatch[1].trim();
+  if (titleMatch) result.title = titleMatch[1].replace(/[#📊💰📈⚖️📝]/g, '').trim();
   
-  // 문제 파싱
-  const qRegex = /\*\*문제\s*(\d+)\*\*\s*\n([\s\S]*?)\*\*정답:\s*([A-D])\*\*/g;
-  const questions = {};
-  let match;
+  // 문제 영역과 해설 영역 분리
+  // "해설" 또는 "정답 및 해설" 섹션을 기준으로 분리
+  let problemSection = text;
+  let explanationSection = '';
   
-  while ((match = qRegex.exec(text)) !== null) {
-    const num = parseInt(match[1]);
-    const block = match[2].trim();
-    const answer = match[3].trim().toUpperCase();
+  const expSectionMatch = text.match(/(?:^|\n)#+\s*(?:📝\s*)?(?:정답\s*(?:및|과)?\s*)?해설[^\n]*\n([\s\S]*)/);
+  if (expSectionMatch) {
+    problemSection = text.substring(0, expSectionMatch.index);
+    explanationSection = expSectionMatch[1];
+  }
+  
+  // ===== 1. 문제 파싱 =====
+  // 문제 시작 패턴: **1.** / **1번.** / **1번)** / **문제 1.** / **문제 1)** 등
+  const qStartRegex = /\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*[.)]\s*\*\*|\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*[.)]?\s*([^\n*]*)\*\*/g;
+  
+  // 더 간단한 접근: 줄 단위로 파싱
+  const lines = problemSection.split('\n');
+  const questions = [];
+  let current = null;
+  let setIndex = 0;  // 여러 세트가 섞였을 때 구분용
+  let prevNum = 0;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
     
-    const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+    // 문제 시작 인식 (**N.** **N번.** **N)** **N번)** **문제 N.** 등)
+    const qMatch = line.match(/^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*[.)]\s*(.*?)\*\*\s*(.*)$/) ||
+                   line.match(/^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*[.)]?\s*\*\*\s*(.+)$/);
     
-    // 보기와 질문 분리
-    const choiceLines = [];
-    const questionLines = [];
-    let foundChoice = false;
+    if (qMatch) {
+      // 이전 문제 저장
+      if (current) questions.push(current);
+      
+      const num = parseInt(qMatch[1]);
+      // 번호가 역행하면 새 세트로 인식
+      if (num <= prevNum && prevNum >= 15) {
+        setIndex++;
+      }
+      prevNum = num;
+      
+      // 질문 텍스트 추출
+      let qText = (qMatch[2] || '') + (qMatch[3] ? ' ' + qMatch[3] : '');
+      qText = qText.replace(/^\*+|\*+$/g, '').trim();
+      
+      current = {
+        setIndex,
+        num,
+        uniqueKey: `${setIndex}-${num}`,
+        question: qText,
+        choices: [],
+        choiceMarkers: [],  // ①②③④ 또는 1234 저장
+        answer: -1,
+        explanation: ''
+      };
+      continue;
+    }
     
-    for (const line of lines) {
-      if (/^[A-D]\)/i.test(line)) {
-        foundChoice = true;
-        choiceLines.push(line.replace(/^[A-D]\)\s*/i, ''));
-      } else if (!foundChoice) {
-        questionLines.push(line);
+    // 보기 인식
+    if (current) {
+      // 형식: - ① xxx / ① xxx / 1. xxx / 1) xxx / A) xxx
+      let cMatch = line.match(/^[-•]?\s*([①②③④⑤])\s*(.+)$/);
+      if (!cMatch) cMatch = line.match(/^([1-5])[.)]\s*(.+)$/);
+      if (!cMatch) cMatch = line.match(/^([A-E])\)\s*(.+)$/i);
+      
+      if (cMatch) {
+        const marker = cMatch[1];
+        const idx = CIRCLE_TO_IDX[marker.toUpperCase()];
+        if (idx !== undefined && idx < 5) {
+          current.choiceMarkers.push(marker);
+          current.choices[idx] = cMatch[2].trim();
+        }
+        continue;
+      }
+      
+      // 문제문 이어지기 (보기가 아직 안나왔을 때)
+      if (current.choices.length === 0 && line && !line.startsWith('#') && !line.startsWith('---')) {
+        current.question += (current.question ? ' ' : '') + line;
       }
     }
-    
-    questions[num] = {
-      num: num,
-      question: questionLines.join('\n'),
-      choices: choiceLines,
-      answer: ['A','B','C','D'].indexOf(answer),
-      explanation: '해설이 없습니다.'
-    };
   }
+  if (current) questions.push(current);
   
-  // 해설 파싱
-  const eRegex = /\*\*문제\s*(\d+)\s*해설:\*\*\s*\n([\s\S]*?)(?=\n\*\*문제\s*\d+\s*해설:|\n#|\Z)/g;
-  while ((match = eRegex.exec(text)) !== null) {
-    const num = parseInt(match[1]);
-    if (questions[num]) {
-      questions[num].explanation = match[2].trim();
+  // ===== 2. 해설 파싱 =====
+  // 해설에서 정답 추출: "**1번 정답: ②**" / "**문제 1 정답: ①**" / "**1. ②**" 등
+  const explanations = {};
+  const answers = {};
+  
+  const expLines = explanationSection.split('\n');
+  let currentExp = null;
+  let expSetIdx = 0;
+  let prevExpNum = 0;
+  
+  for (let i = 0; i < expLines.length; i++) {
+    const line = expLines[i].trim();
+    
+    // 해설/정답 시작 패턴
+    const patterns = [
+      /^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*(?:정답|해설)?\s*[:：.)]?\s*([①②③④⑤1-5A-Ea-e]+)?\s*\*\*/,  // **1번 정답: ②**
+      /^\*\*\s*(\d+)\s*(?:번)?\s*정답\s*[:：]?\s*([①②③④⑤1-5A-Ea-e]+)\s*\*\*/,
+      /^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*\.\s*정답\s*[:：]?\s*([①②③④⑤1-5A-Ea-e]+)\s*\*\*/,
+      /^\*\*\s*(?:문제\s*)?(\d+)\s*(?:번)?\s*해설\s*[:：]?\s*\*\*/,
+    ];
+    
+    let matched = null;
+    for (const p of patterns) {
+      const m = line.match(p);
+      if (m) { matched = m; break; }
+    }
+    
+    if (matched) {
+      // 이전 해설 저장
+      if (currentExp) {
+        explanations[currentExp.uniqueKey] = currentExp.text.trim();
+      }
+      
+      const num = parseInt(matched[1]);
+      if (num <= prevExpNum && prevExpNum >= 15) {
+        expSetIdx++;
+      }
+      prevExpNum = num;
+      
+      const uniqueKey = `${expSetIdx}-${num}`;
+      const ansMark = matched[2];
+      if (ansMark) {
+        // 첫 번째 표시만 사용 (복수정답인 경우 첫번째만)
+        const firstChar = ansMark.charAt(0).toUpperCase();
+        const idx = {
+          '①':0,'②':1,'③':2,'④':3,'⑤':4,
+          '1':0,'2':1,'3':2,'4':3,'5':4,
+          'A':0,'B':1,'C':2,'D':3,'E':4
+        }[firstChar];
+        if (idx !== undefined) answers[uniqueKey] = idx;
+      }
+      
+      currentExp = { uniqueKey, text: '' };
+      continue;
+    }
+    
+    // 해설 본문 누적
+    if (currentExp && line && !line.startsWith('#') && !line.startsWith('---') && !line.startsWith('===')) {
+      currentExp.text += (currentExp.text ? '\n' : '') + line;
     }
   }
+  if (currentExp) explanations[currentExp.uniqueKey] = currentExp.text.trim();
   
-  result.questions = Object.values(questions).sort((a, b) => a.num - b.num);
+  // ===== 3. 문제와 해설 매칭 =====
+  const validQuestions = [];
+  questions.forEach(q => {
+    // 정답 매칭
+    if (answers[q.uniqueKey] !== undefined) {
+      q.answer = answers[q.uniqueKey];
+    }
+    // 해설 매칭
+    if (explanations[q.uniqueKey]) {
+      q.explanation = explanations[q.uniqueKey];
+    } else {
+      q.explanation = '해설이 없습니다.';
+    }
+    
+    // 유효성 검사: 보기 2개 이상, 정답이 있어야 함
+    const validChoices = q.choices.filter(c => c);
+    if (validChoices.length >= 2 && q.answer >= 0 && q.answer < q.choices.length && q.choices[q.answer]) {
+      // 빈 보기 제거하고 인덱스 재조정은 하지 않음 (marker 기반이므로)
+      // 하지만 보기가 빈 칸이면 제거하고 정답 인덱스도 조정
+      const compactChoices = [];
+      let newAnswer = -1;
+      q.choices.forEach((c, i) => {
+        if (c) {
+          if (i === q.answer) newAnswer = compactChoices.length;
+          compactChoices.push(c);
+        }
+      });
+      q.choices = compactChoices;
+      q.answer = newAnswer;
+      
+      if (newAnswer >= 0) {
+        validQuestions.push(q);
+      }
+    }
+  });
+  
+  result.questions = validQuestions;
+  result.parseLog.push(`총 인식된 문제: ${questions.length}개`);
+  result.parseLog.push(`유효한 문제: ${validQuestions.length}개`);
+  result.parseLog.push(`정답 인식: ${Object.keys(answers).length}개`);
+  result.parseLog.push(`해설 인식: ${Object.keys(explanations).length}개`);
+  
   return result;
 }
 
-// 배열 섞기 (Fisher-Yates)
+// ===== 배열 섞기 =====
 function shuffleArray(arr) {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -327,32 +471,46 @@ function shuffleArray(arr) {
   return copy;
 }
 
-// 파일 로딩
+// ===== 상태 =====
+let allQuestions = [];
+let questions = [];
+let currentIdx = 0;
+let userAnswers = [];
+let correctCount = 0;
+let wrongCount = 0;
+let answered = false;
+
 async function loadQuiz() {
   try {
-    const response = await fetch(QUIZ_FILE);
+    const response = await fetch(QUIZ_FILE + '?t=' + Date.now());
     if (!response.ok) throw new Error(`파일을 불러올 수 없습니다 (${response.status})`);
     
     const text = await response.text();
     const data = parseQuizText(text);
     
+    // 디버그 정보 표시
+    const debugEl = document.getElementById('debug');
+    debugEl.style.display = 'block';
+    debugEl.innerHTML = '🔧 ' + data.parseLog.join(' | ');
+    
     if (data.questions.length === 0) {
-      throw new Error('문제를 파싱하지 못했습니다. 파일 형식을 확인하세요.');
+      throw new Error('문제를 파싱하지 못했습니다.\n\n' + data.parseLog.join('\n'));
     }
     
     allQuestions = data.questions;
-    document.getElementById('quizTitle').textContent = `📚 ${data.title}`;
+    document.getElementById('quizTitle').textContent = `📚 ${data.title} (${data.questions.length}문제)`;
     
     startQuiz(allQuestions);
   } catch (err) {
     document.getElementById('loadingView').innerHTML = 
-      `<div class="error">❌ ${err.message}<br><br>
-      <small>quiz.txt 파일이 같은 폴더에 있는지 확인하세요.</small></div>`;
+      `<div class="error-box">❌ ${err.message}<br><br>
+      <small>quiz.txt가 같은 폴더에 있는지 확인하세요.<br>
+      (로컬에서 열 때는 Live Server를 사용하세요)</small></div>`;
   }
 }
 
 function startQuiz(qList) {
-  questions = shuffleArray(qList);  // 🎲 랜덤 섞기
+  questions = shuffleArray(qList);
   currentIdx = 0;
   userAnswers = [];
   correctCount = 0;
@@ -381,7 +539,7 @@ function loadQuestion() {
 
   const container = document.getElementById('choicesContainer');
   container.innerHTML = '';
-  const labels = ['A', 'B', 'C', 'D'];
+  const labels = ['①', '②', '③', '④', '⑤'];
   
   q.choices.forEach((choice, idx) => {
     const btn = document.createElement('button');
@@ -412,34 +570,29 @@ function selectAnswer(idx) {
     else if (i === idx) btn.classList.add('wrong');
   });
   
-  if (idx === q.answer) {
-    correctCount++;
-  } else {
-    wrongCount++;
-  }
+  if (idx === q.answer) correctCount++;
+  else wrongCount++;
   
   document.getElementById('correctCount').textContent = correctCount;
   document.getElementById('wrongCount').textContent = wrongCount;
   
-  // 해설 표시
+  const labels = ['①', '②', '③', '④', '⑤'];
   const exp = document.getElementById('explanation');
   const isCorrect = idx === q.answer;
-  exp.innerHTML = `<strong>${isCorrect ? '✅ 정답입니다!' : '❌ 오답입니다. 정답은 ' + labels(q.answer) + '입니다.'}</strong>📖 해설\n\n${q.explanation}`;
+  const header = isCorrect 
+    ? '✅ 정답입니다!' 
+    : `❌ 오답입니다. 정답은 ${labels[q.answer]}번입니다.`;
+  
+  exp.innerHTML = `<strong>${header}</strong>📖 해설\n\n${q.explanation}`;
   exp.classList.add('show');
   
-  // 다음 버튼 활성화
   const nextBtn = document.getElementById('nextBtn');
   nextBtn.disabled = false;
   nextBtn.textContent = currentIdx === questions.length - 1 ? '🏁 결과 보기' : '다음 문제 →';
 }
 
-function labels(idx) {
-  return ['A', 'B', 'C', 'D'][idx];
-}
-
 function nextQuestion() {
   if (!answered) return;
-  
   if (currentIdx < questions.length - 1) {
     currentIdx++;
     loadQuestion();
@@ -457,9 +610,9 @@ function showResult() {
   
   const rate = (correctCount / questions.length * 100).toFixed(0);
   let msg = '';
-  if (rate >= 90) msg = '🏆 훌륭합니다! 완벽에 가까워요!';
-  else if (rate >= 70) msg = '👍 잘하셨어요! 조금만 더!';
-  else if (rate >= 50) msg = '💪 절반은 넘었어요. 복습하세요!';
+  if (rate >= 90) msg = '🏆 훌륭합니다!';
+  else if (rate >= 70) msg = '👍 잘하셨어요!';
+  else if (rate >= 50) msg = '💪 절반은 넘었어요.';
   else msg = '📚 더 학습이 필요합니다.';
   document.getElementById('resultMessage').textContent = `정답률 ${rate}% - ${msg}`;
 }
@@ -481,7 +634,6 @@ function reviewWrong() {
   startQuiz(wrongQs);
 }
 
-// 시작
 loadQuiz();
 </script>
 </body>
